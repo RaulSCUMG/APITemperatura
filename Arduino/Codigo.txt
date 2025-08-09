@@ -1,0 +1,73 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include "DHT.h"
+
+#define DHTPIN 4
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+
+// === WIFI ===
+const char* ssid = "Paleta de Coco";
+const char* password = "C@s@2018";
+
+const char* serverName = "https://temperatura-telecom-raul.azurewebsites.net/api/arduino";
+
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+
+  // Conexión a Wi-Fi
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando a WiFi...");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.print(".");
+  }
+  Serial.println("Conectado!");
+}
+
+void loop() {
+  // Lectura del sensor
+  float humedad = dht.readHumidity();
+  float temperatura = dht.readTemperature();
+
+  // Validar lectura
+  if (isnan(humedad) || isnan(temperatura)) {
+    Serial.println("Fallo al leer el sensor DHT11");
+    delay(2000);
+    return;
+  }
+
+  Serial.printf("Temp: %.2f°C - Humedad: %.2f%%\n", temperatura, humedad);
+
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(serverName);
+    http.addHeader("Content-Type", "application/json");
+
+    String json = "{\"temperatura\": " + String(temperatura, 2) + ", \"humedad\": " + String(humedad, 2) + "}";
+    
+    Serial.println("Enviando JSON:");
+    Serial.println(json);
+
+    int httpResponseCode = http.POST(json);
+
+    if (httpResponseCode > 0) {
+      String response = http.getString();
+      Serial.print("Código de respuesta: ");
+      Serial.println(httpResponseCode);
+      Serial.print("Respuesta: ");
+      Serial.println(response);
+    } else {
+      Serial.print("Error en POST: ");
+      Serial.println(http.errorToString(httpResponseCode).c_str());
+    }
+
+    http.end();
+  } else {
+    Serial.println("WiFi no conectado");
+  }
+
+  //delay(60000); //1 MINUTO
+  delay(28800000); // 8 horas
+}

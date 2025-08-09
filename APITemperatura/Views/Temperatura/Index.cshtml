@@ -1,0 +1,57 @@
+﻿@model List<APITemperatura.Models.Temperatura>
+
+@{
+    var ultima = Model.FirstOrDefault();
+    var historial = Model.Skip(1).ToList();
+}
+
+<h2 style="text-align:center;">Lectura de Temperatura y Humedad</h2>
+
+<div class="container py-4">
+
+    <!-- Tarjeta Última Lectura -->
+    @if (ultima != null)
+    {
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-6">
+                <div class="card shadow text-center">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">🌡️ Última</h4>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Fecha:</strong> @ultima.fecha.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p><strong>Temperatura:</strong> @ultima.temperatura °C</p>
+                        <p><strong>Humedad:</strong> @ultima.humedad %</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Historial de lecturas -->
+    <div class="row justify-content-center mb-4" style="max-height:450px;overflow:auto;">
+        <div class="col-6">
+            <h4 class="text-center mb-3">📚 Historial</h4>
+
+            <table class="table table-bordered table-hover text-center">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Temperatura (°C)</th>
+                        <th>Humedad (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in historial)
+                    {
+                        <tr>
+                            <td>@item.fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.temperatura</td>
+                            <td>@item.humedad</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
